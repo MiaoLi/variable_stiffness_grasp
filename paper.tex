@@ -23,7 +23,7 @@ To this end, first, a detailed formulation for the dynamics of the hand-object i
 \textcolor{red}{(We follow the same notation as in Arimoto's book, add ref.)}
 \begin{figure}[h!]
 \centering
-\includegraphics[height=6cm]{hand_object_system.pdf}
+\includegraphics[height=7cm]{hand_object_system.pdf}
 \caption{The hand-object system in 2D. Each finger has 2 DOFs with soft fingertips.}
 \label{fig::system}
 \end{figure}
@@ -38,7 +38,7 @@ where $c_1$ and $c_2$ are positive constant parameters which depends on the mate
 \subsection{Contact constraints}
 \begin{figure}[h!]
 \centering
-\includegraphics[height=4cm]{hand_object_cons1.pdf}
+\includegraphics[height=5cm]{hand_object_cons1.pdf}
 \caption{The constraint that the fingertip should keep contact with the object surface.}
 \label{fig::cons1}
 \end{figure}
@@ -115,6 +115,7 @@ H_i(\mathbf{q_i})\ddot{\mathbf{q}}_i+(\frac{1}{2}\dot{H}_i+S_i)\mathbf{\dot{q}}_
 \sin\theta\\\cos\theta
 \end{bmatrix}=\mathbf{u}_i
 \end{equation}
+
 \begin{equation}
 M\ddot{x}-(f_1-f_2)\cos\theta+(\lambda_1+\lambda_2)\sin\theta=0
 \end{equation}
@@ -125,8 +126,53 @@ M\ddot{y}+(f_1-f_2)\sin\theta+(\lambda_1+\lambda_2)\cos\theta = 0
 I\ddot{\theta}-f_1Y_1+f_2Y_2+l_1\lambda_1-l_2\lambda_2=0
 \end{equation}
 \section{Variable stiffness control}
-
+Motivated from the analysis of the overall system dynamics, the following control law is adopted for each finger to achieve stable grasp:
+\begin{equation}
+u_i=-D_i\mathbf{q}_i+kJ_i^T(\mathbf{x}_i-\mathbf{x}_d)
+\end{equation}
+\begin{align}
+&\mathbf{x}_i=\begin{bmatrix}
+x_i\\
+y_i
+\end{bmatrix}
+&\mathbf{x}_d=\frac{1}{2}\begin{bmatrix}
+x_1+x_2\\
+y_1+y_2
+\end{bmatrix}
+\end{align}
+where $D_i$ is a diagonal positive definite matrix representing the damping gain. $k$ represents the \emph{variable} stiffness for each fingertip.
 \section{Stability Proof}
+Taking the sum of inner product of (15) with $\mathbf{\dot{q_i}},i=1,2$, (16) with $\dot{x}$, (17) with $\dot{y}$, (18) with $\dot{\theta}$, we have:
+\begin{equation}
+\frac{d}{dt}E=-\sum\limits_{i=1,2}\{\mathbf{\dot{q}}_i^TD_i\mathbf{\dot{q}}_i+c_2\Delta \dot{r}_i^2\}+\frac{\dot{k}}{4}{(\mathbf{x}_1-\mathbf{x}_2)^T(\mathbf{x}_1-\mathbf{x}_2)}
+\end{equation}
+\begin{equation}
+E=K+V+P
+\end{equation}
+\begin{equation}
+K=\sum\limits_{i=1,2}\frac{1}{2}\mathbf{\dot{q}}_i^TH_i\mathbf{\dot{q}}_i+\frac{1}{2}
+M(\dot{x}^2+\dot{y}^2)+\frac{1}{2}I\dot{\theta}^2
+\end{equation}
+\begin{equation}
+P=\sum\limits_{i=1,2}\int_{0}^{\Delta r_i}c_1\eta^2d\eta
+\end{equation}
+\begin{equation}
+V=\frac{k}{4}(\mathbf{x}_1-\mathbf{x}_2)^T(\mathbf{x}_1-\mathbf{x}_2)
+\end{equation}
+\textcolor{red}{As proved in Arimoto's book, the closed-loop dynamics is asymptotically stable if:}
+\begin{equation}
+\frac{d}{dt}E<0
+\end{equation}•
+which leads to
+\begin{equation}
+\dot{k}<\frac{\sum\limits_{i=1,2}\{\mathbf{\dot{q}}_i^TD_i\mathbf{\dot{q}}_i+c_2\Delta \dot{r}_i^2\}}{(\mathbf{x}_1-\mathbf{x}_2)^T(\mathbf{x}_1-\mathbf{x}_2)}
+\end{equation}
+From this, we can conclude the following comments \textcolor{red}{Is this conclusion correct? Any example?}:
+\begin{itemize}
+\item If the object is softer, $c_2$ is bigger, we can change the stiffness faster.
+\item If the object is smaller, $(\mathbf{x}_1-\mathbf{x}_2)^T(\mathbf{x}_1-\mathbf{x}_2)$, we can change the stiffness faster
+\end{itemize}•
+
 \section{appendix}
 \appendix
 \section{Identities}
