@@ -128,7 +128,7 @@ I\ddot{\theta}-f_1Y_1+f_2Y_2+l_1\lambda_1-l_2\lambda_2=0
 \section{Variable stiffness control}
 Motivated from the analysis of the overall system dynamics, the following control law is adopted for each finger to achieve stable grasp:
 \begin{equation}
-u_i=-D_i\mathbf{q}_i+kJ_i^T(\mathbf{x}_i-\mathbf{x}_d)
+u_i=-D_i\mathbf{\dot{q}}_i+kJ_i^T(\mathbf{x}_i-\mathbf{x}_d)
 \end{equation}
 \begin{align}
 &\mathbf{x}_i=\begin{bmatrix}
@@ -141,10 +141,11 @@ y_1+y_2
 \end{bmatrix}
 \end{align}
 where $D_i$ is a diagonal positive definite matrix representing the damping gain. $k$ represents the \emph{variable} stiffness for each fingertip.
-\section{Stability Proof}
+\section{Stability Proof--1}
 Taking the sum of inner product of (15) with $\mathbf{\dot{q_i}},i=1,2$, (16) with $\dot{x}$, (17) with $\dot{y}$, (18) with $\dot{\theta}$, we have:
 \begin{equation}
 \frac{d}{dt}E=-\sum\limits_{i=1,2}\{\mathbf{\dot{q}}_i^TD_i\mathbf{\dot{q}}_i+c_2\Delta \dot{r}_i^2\}+\frac{\dot{k}}{4}{(\mathbf{x}_1-\mathbf{x}_2)^T(\mathbf{x}_1-\mathbf{x}_2)}
+\label{eqn::dE}
 \end{equation}
 \begin{equation}
 E=K+V+P
@@ -171,7 +172,10 @@ From this, we can conclude the following comments \textcolor{red}{Is this conclu
 \begin{itemize}
 \item If the object is softer, $c_2$ is bigger, we can change the stiffness faster.
 \item If the object is smaller, $(\mathbf{x}_1-\mathbf{x}_2)^T(\mathbf{x}_1-\mathbf{x}_2)$, we can change the stiffness faster
-\end{itemize}•
+\end{itemize}
+\textcolor{red}{As noticed that the change rate of the stiffness is still depending on the state variable and we still don't know how wo realize the desired stiffness. Note: in our previous work of grasp adaptation, we simply change the $k$ to $k_d$, which may lead to unstable behavior if $k_d-k$ is big. This leads us to the following section.}
+\section{Stability Proof--2}
+As noticed in Eq. \ref{eqn::dE}, the dissipated energy $\sum\limits_{i=1,2}\{\mathbf{\dot{q}}_i^TD_i\mathbf{\dot{q}}_i+c_2\Delta \dot{r}_i^2\}$ set an upper bound for the energy that we can inject into the system. In order to stably vary the stiffness, we keep track of the energy dissipated by the system using a virtual tank(\textcolor{red}{add ref.}). 
 
 \section{appendix}
 \appendix
