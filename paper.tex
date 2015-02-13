@@ -2,6 +2,7 @@
 
 \usepackage{color}
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{graphicx}
 \graphicspath{{./figure/}}
 \definecolor{gray}{RGB}{216,216,216}
@@ -129,6 +130,7 @@ I\ddot{\theta}-f_1Y_1+f_2Y_2+l_1\lambda_1-l_2\lambda_2=0
 Motivated from the analysis of the overall system dynamics, the following control law is adopted for each finger to achieve stable grasp:
 \begin{equation}
 u_i=-D_i\mathbf{\dot{q}}_i+kJ_i^T(\mathbf{x}_i-\mathbf{x}_d)
+\label{eqn::control}
 \end{equation}
 \begin{align}
 &\mathbf{x}_i=\begin{bmatrix}
@@ -173,9 +175,45 @@ From this, we can conclude the following comments \textcolor{red}{Is this conclu
 \item If the object is softer, $c_2$ is bigger, we can change the stiffness faster.
 \item If the object is smaller, $(\mathbf{x}_1-\mathbf{x}_2)^T(\mathbf{x}_1-\mathbf{x}_2)$, we can change the stiffness faster
 \end{itemize}
-\textcolor{red}{As noticed that the change rate of the stiffness is still depending on the state variable and we still don't know how wo realize the desired stiffness. Note: in our previous work of grasp adaptation, we simply change the $k$ to $k_d$, which may lead to unstable behavior if $k_d-k$ is big. This leads us to the following section.}
+\textcolor{red}{As noticed that the change rate of the stiffness is still depending on the state variable and we still don't know how wo realize the desired stiffness. Note: in our previous work of grasp adaptation, we simply change the $k$ to $k_d$, which may lead to unstable behavior if $k_d-k$ is too big. This leads us to the following section.}
 \section{Stability Proof--2}
-As noticed in Eq. \ref{eqn::dE}, the dissipated energy $\sum\limits_{i=1,2}\{\mathbf{\dot{q}}_i^TD_i\mathbf{\dot{q}}_i+c_2\Delta \dot{r}_i^2\}$ set an upper bound for the energy that we can inject into the system. In order to stably vary the stiffness, we keep track of the energy dissipated by the system using a virtual tank(\textcolor{red}{add ref.}). 
+As noticed in Eq. \ref{eqn::dE}, the dissipated energy $\sum\limits_{i=1,2}\{\mathbf{\dot{q}}_i^TD_i\mathbf{\dot{q}}_i+c_2\Delta \dot{r}_i^2\}$ set an upper bound for the energy that we can inject into the system. In order to stably vary the stiffness, we keep track of the energy dissipated by the system using a virtual tank(\textcolor{red}{add ref.}). The control signal is designed as follows:
+\begin{equation}
+u_i=-D_i\mathbf{\dot{q}}_i+J_i^T(\omega z)
+\label{eqn::new_control}
+\end{equation} 
+The new term $z\in \mathbb{R}$ is the state variable associated with the energy in the tank and,
+\begin{equation}
+T(z)=\frac{1}{2}z^2
+\end{equation}
+\begin{equation}
+\dot{z}=\frac{\sigma}{z}\sum\limits_{i=1,2}\{\mathbf{\dot{q}}_i^TD_i\mathbf{\dot{q}}_i+c_2\Delta \dot{r}_i^2\}-\sum\limits_{i=1,2}\omega^T J_i\mathbf{\dot{q_i}}
+\end{equation}
+$\omega(t)\in \mathbb{R}^3$ is the control variable through which it is possible to exchange the energy between the impedance components and the tank. $\sigma$ is a design parameter that opens/closes the tank for energy exchange:
+\begin{displaymath}
+\sigma = \left\{\begin{array}{ll}
+1& T(z)<T_{lim}\\
+0& otherwise
+\end{array}\right.
+\end{displaymath}
+Now with the new controller and tank energy, we can derive:
+\begin{equation}
+E=K+V+T
+\end{equation}
+\begin{equation}
+\frac{d}{dt}E=-\sum\limits_{i=1,2}\{\mathbf{\dot{q}}_i^TD_i\mathbf{\dot{q}}_i+c_2\Delta \dot{r}_i^2\}+\sigma\sum\limits_{i=1,2}\{\mathbf{\dot{q}}_i^TD_i\mathbf{\dot{q}}_i+c_2\Delta \dot{r}_i^2\}\leq0
+\label{eqn::dE2}
+\end{equation}
+Recalling Eq. \ref{eqn::control}, to get the desired stiffness $k_d$, we can exploit the energy stored in the tank by setting:
+\begin{displaymath}
+\omega(t)=\left\{\begin{array}{ll}
+K_d(\mathbf{x}_i-\mathbf{x}_d)/z & T(z)>T_{low}\\
+0&otherwise
+\end{array}\right.
+\end{displaymath}
+The stability proof is similar by following Arimoto's method from Eq. \ref{eqn::dE2}.
+\section{simulation}
+In this section, we will use an 1D example to example the idea of virtual tank for implementing the varying stiffness.
 
 \section{appendix}
 \appendix
@@ -184,7 +222,7 @@ As noticed in Eq. \ref{eqn::dE}, the dissipated energy $\sum\limits_{i=1,2}\{\ma
 From equation (2)(3)(5)(6)(7), we have the following identities:
 
 \colorbox{gray}{
-\begin{minipage}{10cm}
+\begin{minipage}{9cm}
  \begin{align*}
  &\frac{\partial \Delta r_1}{\partial \mathbf{q}_1^T}=J_{1}^T\left[\cos\theta,-\sin\theta\right]^T 
  &\frac{\partial \Delta r_2}{\partial \mathbf{q}_2^T}=-J_{2}^T\left[\cos\theta,-\sin\theta\right]^T\nonumber\\
