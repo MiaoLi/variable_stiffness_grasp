@@ -19,8 +19,8 @@
 \end{abstract}
 
 \section{Introduction}
-In this report, we are addressing the problem of variable stiffness control for robust grasping. As shown in our previous work (\textcolor{red}{IROS}), variable stiffness control can effectively stabilize the grasp under disturbance. However, the stability of such controller has never been addressed before. In this work, we are trying to address this problem starting from the simple test examples,see Fig.~\ref{fig::system}.
-To this end, first, a detailed formulation for the dynamics of the hand-object is derived, which taken rolling constraints and the soft fingertip into account Then, a variable stiffness controller is presented to grasp the object stable and the upper bound for the change rate of the stiffness is derived from the proof of stability.
+In this report, we address the problem of variable stiffness control for robust grasping. As shown in our previous work (\textcolor{red}{IROS2014}), variable stiffness control can effectively stabilize the grasp under disturbance. However, the stability of such controller has never been addressed before. In this work, we are trying to address this problem using a two-fingered test examples,see Fig.~\ref{fig::system}.
+To this end, first, a detailed formulation for the dynamics of the hand-object is derived, which takes rolling constraints and the soft fingertip into account. Then, a variable stiffness controller is presented to grasp the object stable and the upper bound for the change rate of the stiffness is derived from the proof of stability.
 \textcolor{red}{(We follow the same notation as in Arimoto's book, add ref.)}
 \begin{figure}[h!]
 \centering
@@ -127,7 +127,7 @@ M\ddot{y}+(f_1-f_2)\sin\theta+(\lambda_1+\lambda_2)\cos\theta = 0
 I\ddot{\theta}-f_1Y_1+f_2Y_2+l_1\lambda_1-l_2\lambda_2=0
 \end{equation}
 \section{Variable stiffness control}
-Motivated from the analysis of the overall system dynamics, the following control law is adopted for each finger to achieve stable grasp:
+Motivated by the analysis of the overall system dynamics, the following control law is adopted for each finger to achieve stable grasp:
 \begin{equation}
 u_i=-D_i\mathbf{\dot{q}}_i+kJ_i^T(\mathbf{x}_i-\mathbf{x}_d)
 \label{eqn::control}
@@ -142,7 +142,8 @@ x_1+x_2\\
 y_1+y_2
 \end{bmatrix}
 \end{align}
-where $D_i$ is a diagonal positive definite matrix representing the damping gain. $k$ represents the \emph{variable} stiffness for each fingertip.
+where $D_i$ is a diagonal positive definite matrix representing the damping gain. $k\in R^+$ represents the \emph{variable} stiffness for each fingertip($k$ is the same value for the two-finger grasp to ensure force balance).
+
 \section{Stability Proof--1}
 Taking the sum of inner product of (15) with $\mathbf{\dot{q_i}},i=1,2$, (16) with $\dot{x}$, (17) with $\dot{y}$, (18) with $\dot{\theta}$, we have:
 \begin{equation}
@@ -176,6 +177,64 @@ From this, we can conclude the following comments \textcolor{red}{Is this conclu
 \item If the object is smaller, $(\mathbf{x}_1-\mathbf{x}_2)^T(\mathbf{x}_1-\mathbf{x}_2)$, we can change the stiffness faster
 \end{itemize}
 \textcolor{red}{As noticed that the change rate of the stiffness is still depending on the state variable and we still don't know how wo realize the desired stiffness. Note: in our previous work of grasp adaptation, we simply change the $k$ to $k_d$, which may lead to unstable behavior if $k_d-k$ is too big. This leads us to the following section.}
+
+\section{Stability Proof}
+The stability proof in previous section set an upper bound for the change rate of stiffness. However, it does not take the control policy for the stiffness into account. In our IROS paper, the desired stiffness is a function of the tactile sensing $S$ and the rest length $L$, which is encoded using a probabilistic model GMM as follows,
+
+\begin{equation}
+k=g(S,L)=\sum_{i=1}^{m}h_i[\mu_{k,i}+\Sigma_{ky,i}\Sigma^{-1}_{y,i}(y-\mu_{y,i})]
+\label{eqn::GMM_K}
+\end{equation}    
+Denote $y=[L^T,S^T]^T$, \textcolor{red}{Explain all the notations here later}. \\
+To prove eqn.~(\ref{eqn::dE}), we need to compute the change rate of stiffness, i.e. $\dot k$,
+\begin{align}
+\dot k &= \frac{\partial k}{\partial y}(\frac{\partial y}{\partial L}\frac{\partial L}{\partial t}+\frac{\partial y}{\partial s}\frac{\partial s}{\partial t}) \\
+&=\frac{\partial k}{\partial y}\begin{bmatrix}
+\mathbf{x}_1^TJ_1\mathbf{\dot q}_1+\mathbf{x}_2^TJ_2\mathbf{\dot q}_2\\
+\mathbf{x}_1^TJ_1\mathbf{\dot q}_1+\mathbf{x}_2^TJ_2\mathbf{\dot q}_2\\
+\frac{\partial s}{\partial t}2\|\mathbf{x}_1-\mathbf{x}_2\|
+\end{bmatrix}\frac{1}{2\|\mathbf{x}_1-\mathbf{x}_2\|}
+\end{align}
+
+From the definition of eqn.~(\ref{eqn::GMM_K}), we have:
+\begin{equation}
+\frac{\partial k}{\partial y} = \sum_{i=1}^{m}\{\frac{\partial h_i}{\partial y}[\mu_{k,i}+\Sigma_{ky,i}\Sigma^{-1}_{y,i}(y-\mu_{y,i})]+h_i(\Sigma_{ky,i}\Sigma^{-1}_{y,i})\}
+\end{equation}
+
+\textcolor{red}{Key Assumption:} During the change of stiffness, we assume the weight of each gaussian components does not change with respect to $y$, namely $\frac{\partial h_i}{\partial y}=0$.
+
+We shall view $h_i$ as the responsibility of the $i-$ gaussian component, but only use the rest length to compute it. Due to the physical constraints of the grasp, during the change of stiffness, the rest length doesn't change (ignoring the effect of fingertip's deformation) and thus it is more reliable to just the rest length for computing the weighting coefficients $h_i$. Therefore we have $\frac{\partial h_i}{\partial y}=0$.
+ 
+With this assumption, we have:
+\begin{align}
+\frac{\partial k}{\partial y} &= \sum_{i=1}^{m}h_i(\Sigma_{ky,i}\Sigma^{-1}_{y,i})\\
+ & :=[A_{11},A_{12},A_{13}]
+\end{align}
+Note that $A_{11},A_{12},A_{13}$ are constant values.
+To prove $\frac{d}{dt}E<0$, we only need to proove:
+\begin{align}
+&[A_{11},A_{12},A_{13}]*\begin{bmatrix}
+\mathbf{x}_1^TJ_1\mathbf{\dot q}_1+\mathbf{x}_2^TJ_2\mathbf{\dot q}_2\\
+\mathbf{x}_1^TJ_1\mathbf{\dot q}_1+\mathbf{x}_2^TJ_2\mathbf{\dot q}_2\\
+\frac{\partial s}{\partial t}*2\|\mathbf{x}_1-\mathbf{x}_2\|
+\end{bmatrix}\frac{1}{2\|\mathbf{x}_1-\mathbf{x}_2\|}*\frac{\|\mathbf{x}_1-\mathbf{x}_2\|^2}{4}-\sum\limits_{i=1,2}\{\mathbf{\dot{q}}_i^TD_i\mathbf{\dot{q}}_i+c_2\Delta \dot{r}_i^2\}<0\\
+&\Leftarrow (A_{11}+A_{12})\mathbf{x_1}^TJ_1\mathbf{\dot q}_1+(A_{11}+A_{12})\mathbf{x_2}^TJ_2\mathbf{\dot q}_2+A_{13}\frac{\partial s}{\partial t}2\|\mathbf{x}_1-\mathbf{x}_2\|< \nonumber\\
+&\mathbf{\dot q}_1^T\frac{2D_1}{\|\mathbf{x}_1-\mathbf{x}_2\|}\mathbf{\dot q}_1+\mathbf{\dot q}_2^T\frac{2D_2}{\|\mathbf{x}_1-\mathbf{x}_2\|}\mathbf{\dot q}_2 \quad +2\sum\limits_{i=1,2}\{c_2\Delta \dot{r}_i^2\}/\|\mathbf{x}_1-\mathbf{x}_2\|\\
+&\Leftarrow A_{13}\frac{\partial s}{\partial t}<\mathbf{\dot q}_1^T\frac{D_1}{\|\mathbf{x}_1-\mathbf{x}_2\|^2}\mathbf{\dot q}_1-\frac{A_{11}+A_{12}}{2\|\mathbf{x}_1-\mathbf{x}_2\|}\mathbf{x_1}^TJ_1\mathbf{\dot q}_1+ \nonumber\\
+&~~~~~~~~~~~~~~~~\mathbf{\dot q}_2^T\frac{D_1}{\|\mathbf{x}_1-\mathbf{x}_2\|^2}\mathbf{\dot q}_2-\frac{A_{11}+A_{12}}{2\|\mathbf{x}_1-\mathbf{x}_2\|}\mathbf{x_2}^TJ_2\mathbf{\dot q}_2+\sum\limits_{i=1,2}\{c_2\Delta \dot{r}_i^2\}/\|\mathbf{x}_1-\mathbf{x}_2\|^2\\
+&\Leftarrow A_{13}\frac{\partial s}{\partial t}+ (\frac{A_{11}+A_{12}}{4})^2[\mathbf{x}_1^TJ_1D_1^{-1}J_1^T\mathbf{x}_1+\mathbf{x}_2^TJ_2D_2^{-1}J_2^T\mathbf{x}_2]< \nonumber \\
+&~~~~~~~~~~\underbrace{\| \frac{D_1^{-1/2}}{\|\mathbf{x}_1-\mathbf{x}_2\|}\mathbf{\dot q}_1-\mathbf{b}_1\|^2+\| \frac{D_2^{-1/2}}{\|\mathbf{x}_1-\mathbf{x}_2\|}\mathbf{\dot q}_2-\mathbf{b}_2\|^2+\sum\limits_{i=1,2}\{c_2\Delta \dot{r}_i^2\}/\|\mathbf{x}_1-\mathbf{x}_2\|^2}_{\text{denote this part as $\gamma$ and $\gamma>0$}}\\
+&\Leftarrow A_{13}\frac{\partial s}{\partial t}+ (\frac{A_{11}+A_{12}}{4})^2[\mathbf{x}_1^TJ_1D_1^{-1}J_1^T\mathbf{x}_1+\mathbf{x}_2^TJ_2D_2^{-1}J_2^T\mathbf{x}_2]< \gamma \label{eqn::proof}
+\end{align}
+Note that the first term in the left side of eqn.~(\ref{eqn::proof})), i.e., $A_{13}\frac{\partial s}{\partial t}$ represents the change of stiffness due to the change of tactile sensing, if it is negative, eqn.~(\ref{eqn::proof})) will keep holding and we don't need to change the damping to stabilize the system. When $A_{13}\frac{\partial s}{\partial t}>0$, namely increasing the stiffness according to the tactile sensing, we need to set a proper damping term to stabilize the system.
+From the bound of Jacobian(Christian ott's book), we have,
+\begin{equation}
+\lambda_{max}(J_iJ_i^T)<\sigma_{max}^2, i=1,2
+\end{equation}
+Also, from the physical constraint of the finger, $\|\mathbf{x}_i\|<L_f, i=1,2$. Assume we use the same damping at each joint, $D_1=D_2=diag\{d_i\}$, then we have:
+\begin{equation}
+\end{equation}
+
 \section{Stability Proof--2}
 As noticed in Eq. \ref{eqn::dE}, the dissipated energy $\sum\limits_{i=1,2}\{\mathbf{\dot{q}}_i^TD_i\mathbf{\dot{q}}_i+c_2\Delta \dot{r}_i^2\}$ set an upper bound for the energy that we can inject into the system. In order to stably vary the stiffness, we keep track of the energy dissipated by the system using a virtual tank(\textcolor{red}{add ref.}). The control signal is designed as follows:
 \begin{equation}
