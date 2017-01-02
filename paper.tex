@@ -210,7 +210,7 @@ With this assumption, we have:
 \frac{\partial k}{\partial y} &= \sum_{i=1}^{m}h_i(\Sigma_{ky,i}\Sigma^{-1}_{y,i})\\
  & :=[A_{11},A_{12},A_{13}]
 \end{align}
-Note that $A_{11},A_{12},A_{13}$ are constant values.
+Note that $A_{11}\in R,A_{12}\in R,A_{13}\in R^{n_s\times 1}$ are constant values or matrix,$n_s$ is the dimension of tactile reading.
 To prove $\frac{d}{dt}E<0$, we only need to proove:
 \begin{align}
 &[A_{11},A_{12},A_{13}]*\begin{bmatrix}
@@ -223,7 +223,7 @@ To prove $\frac{d}{dt}E<0$, we only need to proove:
 &\Leftarrow A_{13}\frac{\partial s}{\partial t}<\mathbf{\dot q}_1^T\frac{D_1}{\|\mathbf{x}_1-\mathbf{x}_2\|^2}\mathbf{\dot q}_1-\frac{A_{11}+A_{12}}{2\|\mathbf{x}_1-\mathbf{x}_2\|}\mathbf{x_1}^TJ_1\mathbf{\dot q}_1+ \nonumber\\
 &~~~~~~~~~~~~~~~~\mathbf{\dot q}_2^T\frac{D_1}{\|\mathbf{x}_1-\mathbf{x}_2\|^2}\mathbf{\dot q}_2-\frac{A_{11}+A_{12}}{2\|\mathbf{x}_1-\mathbf{x}_2\|}\mathbf{x_2}^TJ_2\mathbf{\dot q}_2+\sum\limits_{i=1,2}\{c_2\Delta \dot{r}_i^2\}/\|\mathbf{x}_1-\mathbf{x}_2\|^2\\
 &\Leftarrow A_{13}\frac{\partial s}{\partial t}+ (\frac{A_{11}+A_{12}}{4})^2[\mathbf{x}_1^TJ_1D_1^{-1}J_1^T\mathbf{x}_1+\mathbf{x}_2^TJ_2D_2^{-1}J_2^T\mathbf{x}_2]< \nonumber \\
-&~~~~~~~~~~\underbrace{\| \frac{D_1^{-1/2}}{\|\mathbf{x}_1-\mathbf{x}_2\|}\mathbf{\dot q}_1-\mathbf{b}_1\|^2+\| \frac{D_2^{-1/2}}{\|\mathbf{x}_1-\mathbf{x}_2\|}\mathbf{\dot q}_2-\mathbf{b}_2\|^2+\sum\limits_{i=1,2}\{c_2\Delta \dot{r}_i^2\}/\|\mathbf{x}_1-\mathbf{x}_2\|^2}_{\text{denote this part as $\gamma$ and $\gamma>0$}}\\
+&~~~~~~~~~~\underbrace{\| \frac{D_1^{1/2}}{\|\mathbf{x}_1-\mathbf{x}_2\|}\mathbf{\dot q}_1-\mathbf{b}_1\|^2+\| \frac{D_2^{1/2}}{\|\mathbf{x}_1-\mathbf{x}_2\|}\mathbf{\dot q}_2-\mathbf{b}_2\|^2+\sum\limits_{i=1,2}\{c_2\Delta \dot{r}_i^2\}/\|\mathbf{x}_1-\mathbf{x}_2\|^2}_{\text{denote this part as $\gamma$ and $\gamma>0$}}\\
 &\Leftarrow A_{13}\frac{\partial s}{\partial t}+ (\frac{A_{11}+A_{12}}{4})^2[\mathbf{x}_1^TJ_1D_1^{-1}J_1^T\mathbf{x}_1+\mathbf{x}_2^TJ_2D_2^{-1}J_2^T\mathbf{x}_2]< \gamma \label{eqn::proof}
 \end{align}
 Note that the first term in the left side of eqn.~(\ref{eqn::proof})), i.e., $A_{13}\frac{\partial s}{\partial t}$ represents the change of stiffness due to the change of tactile sensing, if it is negative, eqn.~(\ref{eqn::proof})) will keep holding and we don't need to change the damping to stabilize the system. When $A_{13}\frac{\partial s}{\partial t}>0$, namely increasing the stiffness according to the tactile sensing, we need to set a proper damping term to stabilize the system.
@@ -231,11 +231,20 @@ From the bound of Jacobian(Christian ott's book), we have,
 \begin{equation}
 \lambda_{max}(J_iJ_i^T)<\sigma_{max}^2, i=1,2
 \end{equation}
-Also, from the physical constraint of the finger, $\|\mathbf{x}_i\|<L_f, i=1,2$. Assume we use the same damping at each joint, $D_1=D_2=diag\{d_i\}$, then we have:
+Also, from the physical constraint of the finger, $\|\mathbf{x}_i\|<L_f, i=1,2$. Assume we use the same damping at each joint, $D_1=D_2=diag\{d\}$, then we have:
 \begin{equation}
+d>\frac{2\sigma_{max}^2L_f^2(\frac{A_{11}+A_{12}}{4})^2}{\gamma-A_{13}\frac{\partial s}{\partial t}}
 \end{equation}
+\textcolor{red}{Remark:}\begin{itemize}
+\item $\gamma$ is a parameter that is determined heuristically. If $\gamma \uparrow$, then $d \downarrow$.
+From the definition of $\gamma$, it will increase if the softness of fingertip $c_2$ increases or the size of object decreases, i.e., $\|\mathbf{x}_1-\mathbf{x}_2\| \downarrow$.(\textcolor{red}{This intuitively makes sense. If finger is softer, less damping is required.})
+\item The value $\frac{\partial s}{\partial t}$ is determined by the sensitivity of the tactile sensor. In practice, most often a filter is used to preprocess the sensory data. The rate of change of tactile sensing $\frac{\partial s}{\partial t}$ can be directly obtained from the filer and the damping can be set accordingly. Another possibility is to assume a bound for $\|A_{13}\frac{\partial s}{\partial t}\|<\gamma_s$ and then damping $d$ can be set using the maximal value $\gamma_s$. 
+\item Note that the bound for $d$  is still very conservative, due to the assumption made on $\gamma$ and the neglect of relative high friction at each joint of the fingers. (For all the experiments we have done so far, we didn't observe any unstable behavior.) 
+\end{itemize}
 
 \section{Stability Proof--2}
+\textcolor{red}{This is another possibility to ensure the stability of system by observing the energy dissipation, but it is also conservative and an observer for the joint velocity is required. Intuitively, this method use a virtual tank to adaptively set the rate of change of the stiffness.}
+
 As noticed in Eq. \ref{eqn::dE}, the dissipated energy $\sum\limits_{i=1,2}\{\mathbf{\dot{q}}_i^TD_i\mathbf{\dot{q}}_i+c_2\Delta \dot{r}_i^2\}$ set an upper bound for the energy that we can inject into the system. In order to stably vary the stiffness, we keep track of the energy dissipated by the system using a virtual tank(\textcolor{red}{add ref.}). The control signal is designed as follows:
 \begin{equation}
 u_i=-D_i\mathbf{\dot{q}}_i+J_i^T(\omega z)
